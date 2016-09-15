@@ -1,4 +1,7 @@
 // Basic demo for accelerometer readings from Adafruit LIS3DH
+#if defined(ARDUINO) 
+SYSTEM_MODE(MANUAL); 
+#endif
 
 //#include <Wire.h>
 //#include <SPI.h>
