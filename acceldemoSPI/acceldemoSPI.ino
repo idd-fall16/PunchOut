@@ -56,7 +56,8 @@ void setup(void) {
     while (1);
   }
   Serial.println("LIS3DH found!");
-  
+
+  //Sets the range depending on how you want to scale the readings
   lis.setRange(LIS3DH_RANGE_4_G);   // 2, 4, 8 or 16 G!
   
   Serial.print("Range = "); Serial.print(2 << lis.getRange());  
@@ -79,6 +80,18 @@ void loop() {
   Serial.print(" \tY: "); Serial.print(event.acceleration.y); 
   Serial.print(" \tZ: "); Serial.print(event.acceleration.z); 
   Serial.println(" m/s^2 ");
+  
+  if(event.acceleration.y < -5) {
+    Serial.println("High");
+  }
+  else if(event.acceleration.y > 5) {
+    Serial.println("Low");
+  }
+    /*
+  else {
+    Serial.println("Neutral");
+  }
+  */
 
   Serial.println();
  
