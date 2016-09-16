@@ -4,7 +4,7 @@ SYSTEM_MODE(MANUAL);
 
 // PIN EXAMPLE
 // EXAMPLE USAGE
-int flexSensor = A0;
+int flexSensor = A1;
 
 void setup()
 {
