@@ -1,104 +1,60 @@
+/* Graph I2C Accelerometer On RedBear Duo over Serial Port
+ * Adafruit Part 2809 LIS3DH - http://adafru.it/2809
+ * This example shows how to program I2C manually
+ * I2C Pins SDA1==D0, SCL1 == D1
+ * Default address: 0x18
+ */
+ 
+// do not use the cloud functions - assume programming through Arduino IDE
 #if defined(ARDUINO) 
 SYSTEM_MODE(MANUAL); 
 #endif
+// Basic demo for accelerometer readings from Adafruit LIS3DH
 
-#include "application.h"
-//#include <spark_wiring_i2c.h>
-#include "spark_wiring.h"
-#include "spark_wiring_i2c.h"
+#include "Adafruit_LIS3DH.h"
+#include "Adafruit_Sensor.h"
 
-// LIS3DHTR I2C address is 18(24)
-#define Addr 0x18
+// I2C
+Adafruit_LIS3DH lis = Adafruit_LIS3DH();
 
-int xAccl = 0;
-int yAccl = 0; 
-int zAccl = 0;
-void setup() 
-{
-    // Set variable
-    //Particle.variable("i2cdevice","LIS3DHTR");
-    //Particle.variable("xAccl", xAccl);
-    //Particle.variable("yAccl", yAccl);
-    //Particle.variable("zAccl", zAccl);
 
-    // Optional set I2C clock speed
-    Wire.setSpeed(400000);
+void setup(void) {
   
-    // Initialise I2C communication as MASTER
-    Wire.begin();
-    // Initialize serial communication, set baud rate = 9600
-    Serial.begin(9600);
+  Serial.begin(9600);
+  Serial.println("LIS3DH test!");
   
-    // Start I2C Transmission
-    Wire.beginTransmission(Addr);
-    // Select control register 1
-    Wire.write(0x20);
-    // Enable X, Y, Z axis, power on mode, data rate selection = 10Hz
-    Wire.write(0x27);
-    // Stop I2C Transmission
-    Wire.endTransmission();
+  if (! lis.begin(0x18)) {   // change this to 0x19 for alternative i2c address
+    Serial.println("Couldnt start");
+    while (1);
+  }
+  Serial.println("LIS3DH found!");
   
-    // Start I2C Transmission
-    Wire.beginTransmission(Addr);
-    // Select control register 4
-    Wire.write(0x23);
-    // Set continuos update, full scale range +/- 2g
-    Wire.write(0x00);
-    // Stop I2C Transmission
-    Wire.endTransmission();
-    delay(300);
+  lis.setRange(LIS3DH_RANGE_4_G);   // 2, 4, 8 or 16 G!
+  
+  //Serial.print("Range = "); Serial.print(2 << lis.getRange());  
+  //Serial.println("G");
 }
 
-void loop()
-{
-    unsigned int data[6];
-    for(int i = 0; i < 6; i++)
-    {
-        // Start I2C Transmission
-        Wire.beginTransmission(Addr);
-        // Select data register
-        Wire.write((40+i));
-        // Stop I2C Transmission
-        Wire.endTransmission();
-        
-        // Request 1 byte of data
-        Wire.requestFrom(Addr, 1);
-        
-        // Read 6 bytes of data
-        // xAccl lsb, xAccl msb, yAccl lsb, yAccl msb, zAccl lsb, zAccl msb
-        if(Wire.available() == 1)
-        {
-            data[i] = Wire.read();
-        }
-        delay(300);
-    }
-    
-    // Convert the data
-    xAccl = ((data[1] * 256) + data[0]);
-    if(xAccl > 32767)
-    {
-        xAccl -= 65536;
-    }
-    
-    yAccl = ((data[3] * 256) + data[2]);
-    if(yAccl > 32767)
-    {
-        yAccl -= 65536;
-    }
-    
-    zAccl = ((data[5] * 256) + data[4]);
-    if(zAccl > 32767)
-    {
-        zAccl -= 65536;
-    }
+void loop() {
+  lis.read();      // get X Y and Z data at once
+  // Then print out the raw data
+  Serial.print("X:  "); Serial.print(lis.x); 
+  Serial.print("  \tY:  "); Serial.print(lis.y); 
+  Serial.print("  \tZ:  "); Serial.print(lis.z); 
 
-    // Output data to dashboard
-    Serial.print("Acceleration in X-Axis :");
-    Serial.println(String(xAccl));
-    Serial.print("Acceleration in Y-Axis :");
-    Serial.println(String(yAccl));
-    Serial.print("Acceleration in Z-Axis :");
-    Serial.println(String(zAccl));
-    delay(500);
+  /* Or....get a new sensor event, normalized */ 
+  sensors_event_t event; 
+  lis.getEvent(&event);
+  
+  /* Display the results (acceleration is measured in m/s^2) */
+  Serial.print("\t\tX: "); Serial.print(event.acceleration.x);
+  Serial.print(" \tY: "); Serial.print(event.acceleration.y); 
+  Serial.print(" \tZ: "); Serial.print(event.acceleration.z); 
+  Serial.println(" m/s^2 ");
+
+  Serial.println();
+ 
+  delay(200); 
 }
+
 
